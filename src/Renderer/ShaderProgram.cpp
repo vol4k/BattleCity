@@ -1,8 +1,8 @@
-#include "ShaderProgramm.hpp"
+#include "ShaderProgram.hpp"
 #include <iostream>
 
 namespace Renderer {
-	ShaderProgramm::ShaderProgramm(const std::string& vertexShader, const std::string& fragmentShader) {
+	ShaderProgram::ShaderProgram(const std::string& vertexShader, const std::string& fragmentShader) {
 		GLuint vertexShaderID;
 		if (!createShader(vertexShader, GL_VERTEX_SHADER, vertexShaderID)) {
 			std::cerr << "VERTEX SHADER compile time error" << std::endl;
@@ -35,7 +35,7 @@ namespace Renderer {
 		glDeleteShader(fragmentShaderID);
 	}
 
-	bool ShaderProgramm::createShader(const std::string& source, const GLenum shaderType, GLuint& shaderID) {
+	bool ShaderProgram::createShader(const std::string& source, const GLenum shaderType, GLuint& shaderID) {
 		shaderID = glCreateShader(shaderType);
 		const char* code = source.c_str();
 		glShaderSource(shaderID, 1, &code, nullptr);
@@ -53,15 +53,15 @@ namespace Renderer {
 		return true;
 	}
 
-	ShaderProgramm::~ShaderProgramm() {
+	ShaderProgram::~ShaderProgram() {
 		glDeleteProgram(m_ID);
 	}
 
-	void ShaderProgramm::use() const {
+	void ShaderProgram::use() const {
 		glUseProgram(m_ID);
 	}
 
-	ShaderProgramm& ShaderProgramm::operator=(ShaderProgramm&& shaderProgram) noexcept {
+	ShaderProgram& ShaderProgram::operator=(ShaderProgram&& shaderProgram) noexcept {
 		glDeleteProgram(m_ID);
 		m_ID = shaderProgram.m_ID;
 		m_isCompiled = shaderProgram.m_isCompiled;
@@ -71,7 +71,7 @@ namespace Renderer {
 
 		return *this;
 	}
-	ShaderProgramm::ShaderProgramm(ShaderProgramm&& shaderProgram) noexcept {
+	ShaderProgram::ShaderProgram(ShaderProgram&& shaderProgram) noexcept {
 		m_ID = shaderProgram.m_ID;
 		m_isCompiled = shaderProgram.m_isCompiled;
 
