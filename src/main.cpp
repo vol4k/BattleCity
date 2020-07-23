@@ -108,6 +108,8 @@ int main(int argc, char** argv)
 			/* Render here */
 			glClear(GL_COLOR_BUFFER_BIT);
 
+			resourceManager.loadTexture("Default", "/res/Textures/map_16x16.png");
+
 			pDefaultShaderProgram->use();
 			glBindVertexArray(vao);
 			glDrawArrays(GL_TRIANGLES, 0, 3);

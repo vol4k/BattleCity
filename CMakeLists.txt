@@ -10,6 +10,7 @@ add_executable(
 	src/Renderer/ShaderProgram.hpp
 	src/Resources/ResourceManager.cpp
 	src/Resources/ResourceManager.hpp
+	src/Resources/stb_image.h
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)

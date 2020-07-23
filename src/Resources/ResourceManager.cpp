@@ -5,14 +5,18 @@
 #include <fstream>
 #include <iostream>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#define STBI_ONLY_PNG
+
 ResourceManager::ResourceManager(const std::string executablePath) {
 	size_t found = executablePath.find_last_of("/\\");
-	m_patch = executablePath.substr(0, found);
+	m_path = executablePath.substr(0, found);
 }
 
 std::string ResourceManager::getFileString(const std::string& relativeFilePath) const {
 	std::ifstream f;
-	f.open(m_patch + "/" + relativeFilePath.c_str(), std::ios::in | std::ios::binary);
+	f.open(m_path + "/" + relativeFilePath.c_str(), std::ios::in | std::ios::binary);
 	if (!f.is_open()) {
 		std::cerr << "Faild to open file: " << relativeFilePath << std::endl;
 		return std::string{};
@@ -55,4 +59,20 @@ std::shared_ptr<Renderer::ShaderProgram> ResourceManager::getShaderProgram(const
 	}
 	std::cerr << "Can't find the shader program: " << shaderName << std::endl;
 	return nullptr;
+}
+
+void ResourceManager::loadTexture(const std::string& textureName, const std::string& texturePath) {
+	int channels	= NULL;
+	int width		= NULL;
+	int height		= NULL;
+
+	stbi_set_flip_vertically_on_load(true);
+	unsigned char* pixels = stbi_load(std::string(m_path + "/" + texturePath).c_str(), &width, &height, &channels, NULL);
+
+	if (!pixels) {
+		std::cerr << "Can't load image: " << texturePath << std::endl;
+		return;
+	}
+
+	stbi_image_free(pixels);
 }
