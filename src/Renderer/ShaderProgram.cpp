@@ -26,7 +26,7 @@ namespace Renderer {
 		if (!success) {
 			GLchar infoLog[1024];
 			glGetShaderInfoLog(m_ID, 1024, nullptr, infoLog);
-			std::cerr << "ERROR::SHADER: Link time error!\n" << infoLog << std::endl;
+			std::cerr << "ERROR::SHADER: Link-time error:\n" << infoLog << std::endl;
 		}
 		else {
 			m_isCompiled = true;
@@ -78,4 +78,9 @@ namespace Renderer {
 		shaderProgram.m_ID = NULL;
 		shaderProgram.m_isCompiled = false;
 	}
+
+	void ShaderProgram::setInt(const std::string& name, const GLint value) {
+		glUniform1i(glGetUniformLocation(m_ID, name.c_str()), value);
+	}
+
 }

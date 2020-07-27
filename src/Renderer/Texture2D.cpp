@@ -13,15 +13,19 @@ namespace Renderer {
 		switch (channels) {
 		case 4:
 			m_mode = GL_RGBA;
+			break;
 		case 3:
 			m_mode = GL_RGB;
+			break;
 		default:
 			m_mode = GL_RGBA;
+			break;
 		}
 
 		glGenTextures(1, &m_ID);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, m_ID);
-		glTexImage2D(GL_TEXTURE_2D, NULL, GL_RGB, m_width, m_height, NULL, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, NULL, m_mode, m_width, m_height, NULL, m_mode, GL_UNSIGNED_BYTE, data);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapMode);
@@ -32,7 +36,7 @@ namespace Renderer {
 		glBindTexture(GL_TEXTURE_2D, NULL);
 	}
 
-	Texture2D& Texture2D::operator=(Texture2D&& texture2d) {
+	Texture2D& Texture2D::operator=(Texture2D&& texture2d) noexcept {
 		glDeleteTextures(1, &m_ID);
 		m_ID = texture2d.m_ID;
 		texture2d.m_ID = NULL;
@@ -43,7 +47,7 @@ namespace Renderer {
 		return *this;
 	}
 
-	Texture2D::Texture2D(Texture2D&& texture2d) {
+	Texture2D::Texture2D(Texture2D&& texture2d) noexcept {
 		m_ID = texture2d.m_ID;
 		texture2d.m_ID = NULL;
 		m_mode = texture2d.m_mode;
