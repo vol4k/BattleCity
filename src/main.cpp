@@ -1,5 +1,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/vec2.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <iostream>
 
@@ -8,9 +11,9 @@
 #include "Renderer/Texture2D.hpp"
 
 GLfloat point[] = {
-	 0.0f,  0.5f, 0.0f,
-	 0.5f, -0.5f, 0.0f,
-	-0.5f, -0.5f, 0.0f
+	 0.0f,  50.f, 0.0f,
+	 50.f, -50.f, 0.0f,
+	-50.f, -50.f, 0.0f
 };
 
 GLfloat colors[] = {
@@ -25,13 +28,12 @@ GLfloat texCoord[] = {
 	0.0f, 0.0f
 };
 
-int g_windwSizeX = 640;
-int g_windwSizeY = 480;
+glm::vec2 g_windowSize(640, 480);
 
 void glfwWindowSizeCallback(GLFWwindow* pWindow, int width, int height) {
-	g_windwSizeX = width;
-	g_windwSizeY = height;
-	glViewport(0, 0, g_windwSizeX, g_windwSizeY);
+	g_windowSize.x = width;
+	g_windowSize.y = height;
+	glViewport(0, 0, g_windowSize.x, g_windowSize.y);
 }
 
 void glfwKeyCallback(GLFWwindow* pWindow, int key, int scancode, int action, int mode) {
@@ -53,7 +55,7 @@ int main(int argc, char** argv)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	/* Create a windowed mode window and its OpenGL context */
-	GLFWwindow* pWindow = glfwCreateWindow(g_windwSizeX, g_windwSizeY, "Battle City", nullptr, nullptr);
+	GLFWwindow* pWindow = glfwCreateWindow(g_windowSize.x, g_windowSize.y, "Battle City", nullptr, nullptr);
 	if (!pWindow)
 	{
 		std::cout << "glfwCreateWindow is failed!" << std::endl;
@@ -122,6 +124,20 @@ int main(int argc, char** argv)
 		pDefaultShaderProgram->use();
 		pDefaultShaderProgram->setInt("tex", 0);
 
+		glm::mat4 modelMatrix_1 = glm::mat4(1.f);
+		modelMatrix_1 = glm::translate(modelMatrix_1, glm::vec3(100.f, 200.f, 0.f));
+
+		glm::mat4 modelMatrix_2 = glm::mat4(1.f);
+		modelMatrix_2 = glm::translate(modelMatrix_2, glm::vec3(590.f, 200.f, 0.f));
+
+		glm::mat4 projectionMatrix = glm::ortho(0.f, 
+												static_cast<float>(g_windowSize.x), 
+												0.f, 
+												static_cast<float>(g_windowSize.y), 
+												-100.f, 
+												100.f);
+
+		pDefaultShaderProgram->setMatrix4("projectionMat", projectionMatrix);
 
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(pWindow))
@@ -132,6 +148,10 @@ int main(int argc, char** argv)
 			pDefaultShaderProgram->use();
 			glBindVertexArray(vao);
 			tex->bind();
+			pDefaultShaderProgram->setMatrix4("modelMat", modelMatrix_1);
+			glDrawArrays(GL_TRIANGLES, 0, 3);
+
+			pDefaultShaderProgram->setMatrix4("modelMat", modelMatrix_2);
 			glDrawArrays(GL_TRIANGLES, 0, 3);
 
 			/* Swap front and back buffers */
