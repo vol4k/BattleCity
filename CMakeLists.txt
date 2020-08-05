@@ -10,6 +10,8 @@ add_executable(
 	src/Renderer/ShaderProgram.hpp
 	src/Renderer/Texture2D.cpp
 	src/Renderer/Texture2D.hpp
+	src/Renderer/Sprite.cpp
+	src/Renderer/Sprite.hpp
 	src/Resources/ResourceManager.cpp
 	src/Resources/ResourceManager.hpp
 	src/Resources/stb_image.h

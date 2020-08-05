@@ -1,6 +1,7 @@
 #include "ResourceManager.hpp"
 #include "../Renderer/ShaderProgram.hpp"
 #include "../Renderer/Texture2D.hpp"
+#include "../Renderer/Sprite.hpp"
 
 #include <sstream>
 #include <fstream>
@@ -80,12 +81,13 @@ std::shared_ptr<Renderer::Texture2D> ResourceManager::loadTexture(const std::str
 		return nullptr;
 	}
 
-	std::shared_ptr<Renderer::Texture2D> newTexture = m_textures.emplace(textureName, std::make_shared<Renderer::Texture2D>(width, 
-																															height, 
-																															pixels, 
-																															channels, 
-																															GL_NEAREST,
-																															GL_CLAMP_TO_EDGE)).first->second;
+	std::shared_ptr<Renderer::Texture2D> newTexture = m_textures.emplace(textureName, 
+																		 std::make_shared<Renderer::Texture2D>(width, 
+																											   height, 
+																											   pixels, 
+																											   channels, 
+																											   GL_NEAREST,
+																											   GL_CLAMP_TO_EDGE)).first->second;
 
 	stbi_image_free(pixels);
 
@@ -99,4 +101,83 @@ std::shared_ptr<Renderer::Texture2D> ResourceManager::getTexture(const std::stri
 	}
 	std::cerr << "Can't find the texture: " << textureName << std::endl;
 	return nullptr;
+}
+
+std::shared_ptr<Renderer::Sprite> ResourceManager::loadSprite(const std::string& spriteName,
+															  const std::string& textureName,
+															  const std::string& shaderName,
+															  const unsigned int spriteWidth,
+															  const unsigned int spriteHeight,
+															  const std::string subTextureName)
+{
+	auto pTexture = getTexture(textureName);
+	if (!pTexture)
+	{
+		std::cerr << "Can't find the texture: " << textureName << " for the sprite: " << spriteName << std::endl;
+		return nullptr;
+	}
+
+	auto pShader = getShaderProgram(shaderName);
+	if (!pShader)
+	{
+		std::cerr << "Can't find the shader: " << shaderName << " for the sprite: " << spriteName << std::endl;
+		return nullptr;
+	}
+
+	std::shared_ptr<Renderer::Sprite> newSprite = m_sprites.emplace(textureName,
+																	std::make_shared<Renderer::Sprite>(pTexture,
+																									   subTextureName,
+																									   pShader,
+																									   glm::vec2(0.f, 0.f),
+																									   glm::vec2(spriteWidth,
+																												 spriteHeight))).first->second;
+
+	return newSprite;
+}
+
+std::shared_ptr<Renderer::Sprite> ResourceManager::getSprite(const std::string& spriteName)
+{
+	SpritesMap::const_iterator it = m_sprites.find(spriteName);
+	if (it != m_sprites.end()) {
+		return it->second;
+	}
+	std::cerr << "Can't find the sprite: " << spriteName << std::endl;
+	return nullptr;
+}
+
+
+std::shared_ptr<Renderer::Texture2D> ResourceManager::loadTextureAtlas(const std::string textureName,
+																	   const std::string texturePath,
+																	   const std::vector<std::string> subTextures,
+																	   const unsigned int subTextureWidth,
+																	   const unsigned int subTextureHeight)
+{
+	auto pTexture = loadTexture(std::move(textureName), std::move(texturePath));
+	if (pTexture)
+	{
+		const unsigned int textureWidth = pTexture->width();
+		const unsigned int textureHeight = pTexture->height();
+
+		unsigned int currentTextureOffsetX = 0;
+		unsigned int currentTextureOffsetY = textureHeight;
+
+		for (const auto& currentSubTextureName : subTextures)
+		{
+			glm::vec2 leftBottomUV(	static_cast<float>(currentTextureOffsetX) / textureWidth, 
+									static_cast<float>(currentTextureOffsetY - subTextureHeight) / textureHeight);
+			
+			glm::vec2 rightTopUV(	static_cast<float>(currentTextureOffsetX + subTextureWidth) / textureWidth, 
+									static_cast<float>(currentTextureOffsetY) / textureHeight);
+
+			pTexture->addSubTexture(std::move(currentSubTextureName), leftBottomUV, rightTopUV);
+
+			currentTextureOffsetX += subTextureWidth;
+			if (currentTextureOffsetX >= textureWidth) 
+			{
+				currentTextureOffsetY -= subTextureHeight;
+				currentTextureOffsetX = 0;
+			}
+		}
+	}
+	return pTexture;
 }
