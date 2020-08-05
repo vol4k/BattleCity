@@ -5,11 +5,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <iostream>
+#include <chrono>
 
 #include "Renderer/ShaderProgram.hpp"
 #include "Resources/ResourceManager.hpp"
 #include "Renderer/Texture2D.hpp"
 #include "Renderer/Sprite.hpp"
+#include "Renderer/AnimatedSprite.hpp"
 
 GLfloat point[] = {
 	 0.0f,  50.f, 0.0f,
@@ -96,11 +98,54 @@ int main(int argc, char** argv)
 
 		auto tex = resourceManager.loadTexture("DefaultTexture", "res/Textures/map_16x16.png");
 
-		std::vector<std::string> subTexturesNames = { "block","topLeftBlock","topRightBlock","topBlock","bottomLeftBlock","leftBlock","topRightBottomLeftBlock","topBottomLeftBlock" };
+		std::vector<std::string> subTexturesNames = { 
+			"block",
+			"topLeftBlock",
+			"topRightBlock",
+			"topBlock",
+			"bottomLeftBlock",
+			"leftBlock",
+
+			"topRightBottomLeftBlock",
+			"topBottomLeftBlock",
+			"bottomRightBlock",
+			"topLeftBottomRightBlock",
+			"rightBlock",
+			"topBottomRightBlock",
+
+			"bottomBlock",
+			"topLeftBottomBlock",
+			"topRightBottomBlock",
+			"water1",
+			"water2",
+			"water3",
+
+			"rock",
+			"leaf",
+			"ice",
+			"wall",
+			"respawn",
+			"nothing",
+		};
 		auto pTextureAtlas = resourceManager.loadTextureAtlas("DefaultTextureAtlas", "res/Textures/map_8x8.png", std::move(subTexturesNames), 8, 8);
 
 		auto pSprite = resourceManager.loadSprite("NewSprite", "DefaultTextureAtlas", "SpriteShader", 100, 100, "topBottomLeftBlock");
 		pSprite->setPosition(glm::vec2(300, 100));
+
+		auto pAnimatedSprite = resourceManager.loadAnimatedSprite("NewAnimatedSprite", "DefaultTextureAtlas", "SpriteShader", 50, 50);
+		
+		std::vector<std::pair<std::string, uint64_t>> waterState;
+		waterState.emplace_back(std::pair<std::string, uint64_t>("water1", 5e8));
+		waterState.emplace_back(std::pair<std::string, uint64_t>("water2", 5e8));
+		waterState.emplace_back(std::pair<std::string, uint64_t>("water3", 5e8));
+
+
+		pAnimatedSprite->insertState("waterState", std::move(waterState));
+
+		pAnimatedSprite->setState("waterState");
+		pAnimatedSprite->setPosition(glm::vec2(300,300));
+
+
 
 		GLuint points_vbo = 0;
 		glGenBuffers(1, &points_vbo);
@@ -156,9 +201,16 @@ int main(int argc, char** argv)
 		pSpriteShaderProgram->setInt("tex", 0);
 		pSpriteShaderProgram->setMatrix4("projectionMat", projectionMatrix);
 
+		auto lastTime = std::chrono::high_resolution_clock::now();
+
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(pWindow))
 		{
+			auto currentTime = std::chrono::high_resolution_clock::now();
+			uint64_t duration = std::chrono::duration_cast<std::chrono::nanoseconds>(currentTime - lastTime).count();
+			lastTime = currentTime;
+			pAnimatedSprite->update(duration);
+
 			/* Render here */
 			glClear(GL_COLOR_BUFFER_BIT);
 
@@ -172,6 +224,8 @@ int main(int argc, char** argv)
 			glDrawArrays(GL_TRIANGLES, 0, 3);
 
 			pSprite->render();
+			
+			pAnimatedSprite->render();
 
 			/* Swap front and back buffers */
 			glfwSwapBuffers(pWindow);
